@@ -41,8 +41,8 @@ for item in data['code_files']:
                 covered.extend(range(start,end))
     assert covered==list(range(len(source.splitlines()))),f'Incomplete or repeated code ranges: {item["name"]}'
     assert (site/'downloads'/item['name']).read_text(encoding='utf-8')==source
-assert len(data['areas'])==6
-variant_titles=[b['title'] for page in data['areas'] for b in page['blocks'] if b['title'].startswith('Вариант ')]
+assert len(data['areas'])==30
+variant_titles=[page['title'] for page in data['areas'] if page['title'].startswith('Вариант ')]
 assert len(variant_titles)==30 and len(set(variant_titles))==30,'Expected 30 distinct variants'
 assert (site/'downloads/CrystalRoute-UnityProject.zip').stat().st_size>1000
 manifest=json.loads((site/'manifest.json').read_text(encoding='utf-8'))

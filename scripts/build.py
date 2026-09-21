@@ -29,6 +29,39 @@ def load_course():
                 lines=sources[block['code_file']].splitlines()
                 start,end=block['code_lines']
                 block['text']='\n'.join(lines[start:end])
+    # Publish every variant as an independent card; source grouping is only a compact
+    # authoring convenience and is never shown to students.
+    variants=[]
+    for area in data['areas']:
+        for block in area['blocks']:
+            number=re.search(r'Вариант\s+(\d+)',block['title']).group(1)
+            parts=[]
+            for line in block['text'].splitlines():
+                label, value=line.split(': ',1)
+                parts.append({'title':label,'text':value,'kind':'text'})
+            variants.append({
+                'title':block['title'],
+                'kicker':f'Индивидуальный вариант {number} / выполнить полностью',
+                'anchor':f'variant-{number}',
+                'blocks':parts,
+            })
+    data['areas']=variants
+    # A screenshot gets a separate page so that controls and labels remain readable.
+    expanded=[]
+    for page in data['guide']:
+        images=[block for block in page['blocks'] if block.get('kind')=='image']
+        text_blocks=[block for block in page['blocks'] if block.get('kind')!='image']
+        if text_blocks:
+            expanded.append({**page,'blocks':text_blocks})
+        for index,block in enumerate(images,1):
+            block['wide']=True
+            suffix=f' · изображение {index}' if len(images)>1 else ''
+            expanded.append({
+                'title':page['title']+suffix,
+                'kicker':page['kicker']+' / крупный снимок',
+                'blocks':[block],
+            })
+    data['guide']=expanded
     data['_code_sources']=sources
     return data
 
@@ -82,7 +115,9 @@ def pdf(path, data, pages, name):
     def content(block):
         if block.get('kind') == 'image':
             item=FlowImage(str(ROOT/block['path']))
-            item._restrictSize(colw, 205)
+            max_width = W - 2 * margin if block.get('wide') else colw
+            max_height = 365 if block.get('wide') else 245
+            item._restrictSize(max_width, max_height)
             caption=Paragraph(ESC(block['text']), body)
             return Table([[item],[caption]],colWidths=[colw],style=TableStyle([
                 ('LEFTPADDING',(0,0),(-1,-1),0),('RIGHTPADDING',(0,0),(-1,-1),0),
@@ -136,6 +171,18 @@ def pdf(path, data, pages, name):
 
     for spec in pages:
         ytop = frame(spec["title"], spec["kicker"])
+        if len(spec['blocks']) == 1 and spec['blocks'][0].get('kind') == 'image' and spec['blocks'][0].get('wide'):
+            block = spec['blocks'][0]
+            fullw = W - 2 * margin
+            item = FlowImage(str(ROOT / block['path']))
+            item._restrictSize(fullw, 390)
+            iw, ih = item.wrap(fullw, 390)
+            item.drawOn(c, margin + (fullw - iw) / 2, ytop - ih)
+            caption = Paragraph(ESC(block['text']), body)
+            _, ch = caption.wrap(fullw, 70)
+            caption.drawOn(c, margin, ytop - ih - 12 - ch)
+            c.showPage()
+            continue
         if any(block.get('kind') == 'code' for block in spec['blocks']):
             code_block=next(block for block in spec['blocks'] if block.get('kind')=='code')
             before=[]; after=[]; found=False
@@ -296,7 +343,7 @@ def build(data):
     write('index.html',meta['title'],'Условия, этапы выполнения и сдача задания.',
           '<div class="downloads"><a class="button primary" href="downloads/assignment.pdf">Задание студенту · PDF</a></div>'+pages(data['assignment']))
     code_links=''.join(f'<a class="button" href="downloads/{ESC(item["name"])}">{ESC(item["name"])}</a>' for item in data['code_files'])
-    write('lessons.html','Как выполнить задание','Теория, микро-шаги, снимки работающего прототипа и полный код. Выдаётся по решению преподавателя.',
+    write('lessons.html','Как выполнить задание','Теория, пронумерованные действия, крупные снимки работающего прототипа и полный код. Выдаётся по решению преподавателя.',
           '<div class="downloads"><a class="button primary" href="downloads/guide.pdf">Инструкция · PDF</a><a class="button primary" href="downloads/CrystalRoute-UnityProject.zip">Unity-проект · ZIP</a>'+code_links+'</div>'+pages(data['guide']))
     write('areas.html','Предметные области','Индивидуальные условия задания. Номер варианта назначает преподаватель.',pages(data['areas']))
     # Compatibility addresses contain no educational content or duplicate files.
