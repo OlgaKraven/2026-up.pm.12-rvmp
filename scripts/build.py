@@ -152,7 +152,7 @@ def pdf(path, data, pages, name):
         p.drawOn(c, margin, H - 54 - height)
         c.setStrokeColor(colors.HexColor("#dfe1e5")); c.line(margin, 37, W - margin, 37)
         c.setFont("Body", 8); c.setFillColor(colors.HexColor("#626975"))
-        c.drawString(margin, 22, f"{name} · версия {data['version']}")
+        c.drawString(margin, 22, "Практика 1 · ПМ.12")
         c.drawRightString(W - margin, 22, f"{page_no:02}")
         records.append({"number": page_no, "title": title, "continuation": continuation})
         return H - 72 - height
@@ -163,7 +163,7 @@ def pdf(path, data, pages, name):
     cover_style = ParagraphStyle("cover", fontName="Bold", fontSize=29, leading=35, textColor=colors.white)
     p = Paragraph(ESC(name), cover_style); _, ph = p.wrap(W - 2 * margin - 48, 100); p.drawOn(c, margin + 24, top - 40 - ph)
     c.setFont("Body", 12); c.setFillColor(colors.HexColor("#e6e6e9")); c.drawString(margin + 24, top - 133, "Теория → образец → адаптация → проверка → результат")
-    meta = [data["subtitle"], data["organization"], data["specialty"], f"{data['group']} · {data['module']}", f"Объём: {data['hours']} · Версия {data['version']}"]
+    meta = [data["subtitle"], data["organization"], data["specialty"], data["module"]]
     y = top - 186
     for text in meta:
         p = Paragraph(ESC(text), body); _, ph = p.wrap(W - 2 * margin, 100); p.drawOn(c, margin, y - ph); y -= ph + 9
