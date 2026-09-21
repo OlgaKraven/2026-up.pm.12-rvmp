@@ -2,7 +2,7 @@
   "meta": {
     "title": "Учебная практика ПМ.12: прототип мобильной 2D-игры",
     "subtitle": "Программирование мобильных игр · 30 индивидуальных вариантов",
-    "version": "1.3",
+    "version": "1.4",
     "status": "ready",
     "organization": "Учебно-методический комплект",
     "specialty": "Разработка веб- и мультимедийных приложений",
@@ -887,6 +887,115 @@
           "wide": true,
           "path": "unity-project/Documentation/Screenshots/unity-runtime-inspector.png",
           "alt": "Работающая игра Unity с CrystalQuest в Hierarchy и Game Manager в Inspector."
+        }
+      ]
+    },
+    {
+      "title": "Компоненты Player: верх Inspector",
+      "kicker": "Этап 6 / Hierarchy → Player → Inspector",
+      "blocks": [
+        {
+          "title": "Player выделен в Hierarchy",
+          "text": "Слева синей строкой выделен Player. Справа сверху видны Transform, Sprite Renderer и начало Rigidbody 2D. В Transform меняют Position, Rotation и Scale. В Sprite Renderer поле Color задаёт цвет, а Order in Layer определяет, поверх каких объектов рисуется игрок.",
+          "kind": "image",
+          "wide": true,
+          "path": "unity-project/Documentation/Screenshots/player-components-top.png",
+          "alt": "Unity: Player выделен в Hierarchy, в Inspector открыты Transform, Sprite Renderer и Rigidbody 2D."
+        }
+      ]
+    },
+    {
+      "title": "Компоненты Player: низ Inspector",
+      "kicker": "Этап 6 / Rigidbody 2D, Collider и скрипт",
+      "blocks": [
+        {
+          "title": "Прокрутите Inspector вниз",
+          "text": "Наведите указатель на Inspector и прокрутите вниз. В Rigidbody 2D оставьте Body Type = Dynamic и Gravity Scale = 0. В Circle Collider 2D для игрока Is Trigger выключен. В Player Controller (Script) поле Speed задаёт скорость. В самом низу находится кнопка Add Component.",
+          "kind": "image",
+          "wide": true,
+          "path": "unity-project/Documentation/Screenshots/player-components-lower.png",
+          "alt": "Unity: нижняя часть Inspector объекта Player с Rigidbody 2D, Circle Collider 2D, Player Controller и кнопкой Add Component."
+        }
+      ]
+    },
+    {
+      "title": "Настройка опасности Hazard",
+      "kicker": "Этап 6 / Hierarchy → Hazard → Inspector",
+      "blocks": [
+        {
+          "title": "Проверьте Is Trigger",
+          "text": "Нажмите любой Hazard в Hierarchy. В Transform задаются координаты и размер. В Sprite Renderer установлено Order in Layer = 4. В Circle Collider 2D обязательно включена галочка Is Trigger: опасность должна обнаруживать вход игрока, а не отталкивать его как твёрдая стена.",
+          "kind": "image",
+          "wide": true,
+          "path": "unity-project/Documentation/Screenshots/hazard-inspector.png",
+          "alt": "Unity: объект Hazard в Hierarchy и его Transform, Sprite Renderer и Circle Collider 2D с включённым Is Trigger."
+        }
+      ]
+    },
+    {
+      "title": "Настройка стены WallA",
+      "kicker": "Этап 6 / Hierarchy → WallA → Inspector",
+      "blocks": [
+        {
+          "title": "Стена должна быть твёрдой",
+          "text": "Нажмите WallA в Hierarchy. В Transform видны Position (-3.8, 1.2, 0) и Scale (0.35, 3, 1). В Sprite Renderer установлен Order in Layer = 1. В Box Collider 2D галочка Is Trigger выключена, поэтому Rigidbody 2D игрока не проходит сквозь стену.",
+          "kind": "image",
+          "wide": true,
+          "path": "unity-project/Documentation/Screenshots/wall-box-collider.png",
+          "alt": "Unity: стена WallA в Hierarchy, Transform, Sprite Renderer и Box Collider 2D в Inspector."
+        }
+      ]
+    },
+    {
+      "title": "Добавление компонента: выбор объекта",
+      "kicker": "Этап 6 / Шаг 1 из 4",
+      "blocks": [
+        {
+          "title": "1. Выберите объект",
+          "text": "В Hierarchy один раз нажмите нужный объект. Убедитесь, что его имя появилось сверху Inspector. Прокрутите Inspector до самого низа. Если кнопка Add Component не видна, указатель должен находиться именно над правой панелью во время прокрутки.",
+          "kind": "text"
+        }
+      ]
+    },
+    {
+      "title": "Кнопка Add Component",
+      "kicker": "Этап 6 / Шаг 2 из 4",
+      "blocks": [
+        {
+          "title": "2. Нажмите Add Component",
+          "text": "Нажмите Add Component. Откроется окно со строкой поиска и категориями Physics 2D, Rendering и Scripts. Для этой практики выбирайте только компоненты с окончанием 2D.",
+          "kind": "image",
+          "path": "unity-project/Documentation/Screenshots/add-component-popup.png",
+          "alt": "Окно Add Component в Unity со строкой поиска и категориями компонентов."
+        }
+      ]
+    },
+    {
+      "title": "Поиск Rigidbody 2D",
+      "kicker": "Этап 6 / Шаг 3 из 4",
+      "blocks": [
+        {
+          "title": "3. Найдите компонент",
+          "text": "Щёлкните строку поиска, введите Rigidbody 2D и один раз нажмите найденную строку. Тем же способом ищутся Circle Collider 2D, Box Collider 2D и Sprite Renderer. Перед нажатием проверьте, что в названии есть 2D.",
+          "kind": "image",
+          "path": "unity-project/Documentation/Screenshots/add-rigidbody-search.png",
+          "alt": "Поиск Rigidbody 2D в окне Add Component Unity."
+        }
+      ]
+    },
+    {
+      "title": "После добавления компонента",
+      "kicker": "Этап 6 / Шаг 4 из 4",
+      "blocks": [
+        {
+          "title": "4. Не добавляйте дубликат",
+          "text": "Перед добавлением прокрутите Inspector сверху вниз. Если компонент с таким названием уже существует, второй не добавляйте. После добавления раскройте заголовок компонента маленькой стрелкой слева и заполните его поля по инструкции.",
+          "kind": "note"
+        },
+        {
+          "title": "Если добавили лишний компонент",
+          "text": "В правом верхнем углу заголовка компонента нажмите значок с тремя точками или меню компонента и выберите Remove Component. Не удаляйте Transform: он обязателен для каждого объекта. Во время Play сначала остановите игру, иначе изменение исчезнет.",
+          "kind": "text"
         }
       ]
     },
