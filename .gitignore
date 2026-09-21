@@ -1,0 +1,13 @@
+__pycache__/
+.venv/
+site/
+work/
+tmp/
+.playwright-cli/
+unity-project/Library/
+unity-project/Temp/
+unity-project/Logs/
+unity-project/obj/
+unity-project/UserSettings/
+unity-project/Build/
+.DS_Store
