@@ -28,6 +28,7 @@ public class GameManager : MonoBehaviour
     private int collected;
     private int hearts;
     private float invulnerableUntil;
+    private float mobileInputUntil;
     private float hintUntil;
     private string hint = "";
     private GUIStyle titleStyle;
@@ -231,6 +232,8 @@ public class GameManager : MonoBehaviour
             if (item != null) Destroy(item);
         createdObjects.Clear();
         collected = 0;
+        invulnerableUntil = 0f;
+        mobileInputUntil = 0f;
         hearts = 3;
         state = GameState.Playing;
         MobileDirection = Vector2.zero;
@@ -331,7 +334,13 @@ public class GameManager : MonoBehaviour
         if (GUI.RepeatButton(new Rect(110, 620, 72, 72), "↓", buttonStyle)) direction.y -= 1f;
         if (GUI.RepeatButton(new Rect(30, 620, 72, 72), "←", buttonStyle)) direction.x -= 1f;
         if (GUI.RepeatButton(new Rect(190, 620, 72, 72), "→", buttonStyle)) direction.x += 1f;
-        MobileDirection = Vector2.ClampMagnitude(direction, 1f);
+        if (!IsPlaying) MobileDirection = Vector2.zero;
+        else if (direction != Vector2.zero)
+        {
+            MobileDirection = Vector2.ClampMagnitude(direction, 1f);
+            mobileInputUntil = Time.time + 0.08f;
+        }
+        else if (Time.time >= mobileInputUntil) MobileDirection = Vector2.zero;
 
         if (Time.time < hintUntil)
         {

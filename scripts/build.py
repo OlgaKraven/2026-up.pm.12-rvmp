@@ -12,7 +12,7 @@ from reportlab.lib import colors
 from reportlab.lib.styles import ParagraphStyle
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
-from reportlab.platypus import Paragraph, Image as FlowImage, Table, TableStyle
+from reportlab.platypus import Paragraph, Image as FlowImage, Table, TableStyle, SimpleDocTemplate, PageBreak, Spacer, KeepTogether, Preformatted
 from reportlab.graphics.shapes import Drawing, Rect, Circle, String
 from reportlab.graphics import renderSVG
 
@@ -25,6 +25,8 @@ def load_course():
     sources={item['name']:(ROOT/item['path']).read_text(encoding='utf-8') for item in data['code_files']}
     for page in data['guide']:
         for block in page['blocks']:
+            if 'snippet_file' in block:
+                block['text']=(ROOT/block['snippet_file']).read_text(encoding='utf-8').rstrip()
             if 'code_file' in block:
                 lines=sources[block['code_file']].splitlines()
                 start,end=block['code_lines']
@@ -43,14 +45,15 @@ def load_course():
                 'title':block['title'],
                 'kicker':f'Индивидуальный вариант {number} / выполнить полностью',
                 'anchor':f'variant-{number}',
-                'blocks':parts,
+                'blocks':[ *block.get('materials', []), *parts],
             })
     data['areas']=variants
     # A screenshot gets a separate page so that controls and labels remain readable.
     expanded=[]
     for page in data['guide']:
         images=[block for block in page['blocks'] if block.get('kind')=='image']
-        text_blocks=[block for block in page['blocks'] if block.get('kind')!='image']
+        trailing=[block for block in page['blocks'] if images and block['title']=='Регрессия']
+        text_blocks=[block for block in page['blocks'] if block.get('kind')!='image' and block not in trailing]
         if text_blocks:
             expanded.append({**page,'blocks':text_blocks})
         for index,block in enumerate(images,1):
@@ -59,11 +62,24 @@ def load_course():
             expanded.append({
                 'title':page['title']+suffix,
                 'kicker':page['kicker']+' / крупный снимок',
-                'blocks':[block],
+                'blocks':[block, *(trailing if index==len(images) else [])],
             })
     data['guide']=expanded
     data['_code_sources']=sources
     return data
+
+def source_fingerprint(root=ROOT):
+    """Hash all deliverable inputs in stable path order, independent of OS fonts."""
+    paths = [root/'content/course.json', root/'scripts/build.py', root/'scripts/check.py']
+    for folder in ('assets', 'tutorial', 'unity-project'):
+        paths.extend(p for p in (root/folder).rglob('*') if p.is_file()
+                     and not {'Library','Temp','Logs','obj','UserSettings','Build'}.intersection(p.relative_to(root).parts))
+    digest = hashlib.sha256()
+    for path in sorted(set(paths)):
+        digest.update(path.relative_to(root).as_posix().encode('utf-8') + b'\0')
+        digest.update(path.read_bytes() + b'\0')
+    return digest.hexdigest()
+
 
 def validate(data, release=False):
     for key in ('meta','assignment','guide','areas','code_files'):
@@ -103,181 +119,81 @@ def diagram(block):
     return d
 
 def pdf(path, data, pages, name):
-    W, H = 841.89, 595.28  # A4 landscape, points
-    margin, gap = 38, 28
-    colw = (W - 2 * margin - gap) / 2
-    c = canvas.Canvas(str(path), pagesize=(W, H))
-    c.setTitle(f"{name} · {data['title']}")
-    c.setAuthor(data["organization"])
-    body = ParagraphStyle("body", fontName="Body", fontSize=13.5, leading=19, textColor=colors.HexColor("#30343b"), splitLongWords=True)
-    head = ParagraphStyle("head", fontName="Bold", fontSize=14, leading=18, textColor=colors.HexColor("#1c1c1c"))
-    code = ParagraphStyle("code", fontName="Mono", fontSize=9.2, leading=11.3, textColor=colors.HexColor("#22252a"), splitLongWords=True)
-    def content(block):
-        if block.get('kind') == 'image':
-            item=FlowImage(str(ROOT/block['path']))
-            max_width = W - 2 * margin if block.get('wide') else colw
-            max_height = 365 if block.get('wide') else 245
-            item._restrictSize(max_width, max_height)
-            caption=Paragraph(ESC(block['text']), body)
-            return Table([[item],[caption]],colWidths=[colw],style=TableStyle([
-                ('LEFTPADDING',(0,0),(-1,-1),0),('RIGHTPADDING',(0,0),(-1,-1),0),
-                ('TOPPADDING',(0,0),(-1,-1),0),('BOTTOMPADDING',(0,0),(0,0),7),
-            ]))
-        if block.get('kind') == 'diagram': return diagram(block)
-        raw = ESC(block['text']).replace('\n', '<br/>')
-        if block.get('kind') == 'code': raw=raw.replace(' ', '&#160;')
-        return Paragraph(raw, code if block.get('kind') == 'code' else body)
+    W, H = 841.89, 595.28
+    width=W-76
+    body=ParagraphStyle('body',fontName='Body',fontSize=12,leading=16,spaceAfter=8)
+    head=ParagraphStyle('head',fontName='Bold',fontSize=14,leading=18,spaceBefore=7,spaceAfter=5,keepWithNext=True)
+    title=ParagraphStyle('title',fontName='Bold',fontSize=23,leading=28,spaceAfter=14,keepWithNext=True)
+    mono=ParagraphStyle('code',fontName='Mono',fontSize=9.2,leading=12,spaceAfter=12)
+    compact_body=ParagraphStyle('compact-body',parent=body,leading=15,spaceAfter=5)
+    compact_head=ParagraphStyle('compact-head',parent=head,spaceBefore=5,spaceAfter=4)
+    records=[]; story=[]
+    def heading(text): story.append(Paragraph(ESC(text),title))
+    heading(name)
+    for text in [data['title'],data['subtitle'],data['organization'],data['specialty'],data['module']]:
+        story.append(Paragraph(ESC(text),body))
+    story.append(Paragraph('Версия '+ESC(data['version']),body))
     for spec in pages:
-        for block in spec["blocks"]:
-            if block.get("kind") == "code":
-                for line in block["text"].splitlines():
-                    if pdfmetrics.stringWidth(line, "Mono", 9.2) > W - 2 * margin:
-                        raise ValueError(f"Строка кода слишком длинная; разбейте выражение вручную: {spec['title']}: {line}")
-    title_style = ParagraphStyle("title", fontName="Bold", fontSize=23, leading=28)
-    page_no = 0
-    records = []
-
-    def frame(title, kicker, continuation=False):
-        nonlocal page_no
-        page_no += 1
-        c.bookmarkPage(f"page-{page_no}")
-        c.addOutlineEntry(title + (" · продолжение" if continuation else ""), f"page-{page_no}", level=0)
-        c.setFillColor(colors.HexColor("#ed131c")); c.rect(margin, H - 35, 28, 5, fill=1, stroke=0)
-        c.setFont("Bold", 8); c.setFillColor(colors.HexColor("#626975"))
-        c.drawString(margin + 39, H - 36, kicker[:77])
-        if data["status"] == "template":
-            c.drawRightString(W - margin, H - 36, "ШАБЛОН · ДЛЯ ЗАПОЛНЕНИЯ")
-        p = Paragraph(ESC(title + (" · продолжение" if continuation else "")), title_style)
-        _, height = p.wrap(W - 2 * margin, 100)
-        p.drawOn(c, margin, H - 54 - height)
-        c.setStrokeColor(colors.HexColor("#dfe1e5")); c.line(margin, 37, W - margin, 37)
-        c.setFont("Body", 8); c.setFillColor(colors.HexColor("#626975"))
-        c.drawString(margin, 22, "Практика 1 · ПМ.12")
-        c.drawRightString(W - margin, 22, f"{page_no:02}")
-        records.append({"number": page_no, "title": title, "continuation": continuation})
-        return H - 72 - height
-
-    # The cover is a teaching page, not a portrait title sheet.
-    top = frame(data["title"], "Учебно-методический комплект")
-    c.setFillColor(colors.HexColor("#1c1c1c")); c.roundRect(margin, top - 162, W - 2 * margin, 148, 12, fill=1, stroke=0)
-    cover_style = ParagraphStyle("cover", fontName="Bold", fontSize=29, leading=35, textColor=colors.white)
-    p = Paragraph(ESC(name), cover_style); _, ph = p.wrap(W - 2 * margin - 48, 100); p.drawOn(c, margin + 24, top - 40 - ph)
-    c.setFont("Body", 12); c.setFillColor(colors.HexColor("#e6e6e9")); c.drawString(margin + 24, top - 133, "Теория → образец → адаптация → проверка → результат")
-    meta = [data["subtitle"], data["organization"], data["specialty"], data["module"]]
-    y = top - 186
-    for text in meta:
-        p = Paragraph(ESC(text), body); _, ph = p.wrap(W - 2 * margin, 100); p.drawOn(c, margin, y - ph); y -= ph + 9
-    c.showPage()
-
-    for spec in pages:
-        ytop = frame(spec["title"], spec["kicker"])
-        if len(spec['blocks']) == 1 and spec['blocks'][0].get('kind') == 'image' and spec['blocks'][0].get('wide'):
-            block = spec['blocks'][0]
-            fullw = W - 2 * margin
-            item = FlowImage(str(ROOT / block['path']))
-            item._restrictSize(fullw, 390)
-            iw, ih = item.wrap(fullw, 390)
-            item.drawOn(c, margin + (fullw - iw) / 2, ytop - ih)
-            caption = Paragraph(ESC(block['text']), body)
-            _, ch = caption.wrap(fullw, 70)
-            caption.drawOn(c, margin, ytop - ih - 12 - ch)
-            c.showPage()
-            continue
-        if any(block.get('kind') == 'code' for block in spec['blocks']):
-            code_block=next(block for block in spec['blocks'] if block.get('kind')=='code')
-            before=[]; after=[]; found=False
-            for block in spec['blocks']:
-                if block is code_block:
-                    found=True
-                elif found:
-                    after.append(block)
-                else:
-                    before.append(block)
-            fullw=W-2*margin
-            y=ytop
-            for block in before:
-                title=Paragraph(ESC(block['title']),head)
-                para=content(block)
-                _,hh=title.wrap(fullw,100); _,bh=para.wrap(fullw,500)
-                title.drawOn(c,margin,y-hh); y-=hh+5
-                para.drawOn(c,margin,y-bh); y-=bh+12
-            title=Paragraph(ESC(code_block['title']),head)
-            para=content(code_block)
-            _,hh=title.wrap(fullw,100); _,bh=para.wrap(fullw,1000)
-            title.drawOn(c,margin,y-hh); y-=hh+5
-            para.drawOn(c,margin,y-bh); y-=bh+14
-            if after:
-                note_gap=28
-                note_w=(fullw-note_gap)/2
-                max_height=0
-                for index,block in enumerate(after[:2]):
-                    x=margin+index*(note_w+note_gap)
-                    title=Paragraph(ESC(block['title']),head)
-                    para=content(block)
-                    _,hh=title.wrap(note_w,100); _,bh=para.wrap(note_w,500)
-                    title.drawOn(c,x,y-hh)
-                    para.drawOn(c,x,y-hh-6-bh)
-                    max_height=max(max_height,hh+6+bh)
-                y-=max_height
-            if y < 48:
-                raise ValueError(f"Код и пояснения не помещаются на страницу: {spec['title']}")
-            c.showPage()
-            continue
-        y, col = ytop, 0
-        # Balance complete blocks between columns when the semantic page fits.
-        heights = []
-        for block in spec["blocks"]:
-            raw = ESC(block["text"]).replace("\n", "<br/>")
-            if block.get("kind") == "code": raw = raw.replace(" ", "&#160;")
-            heights.append(Paragraph(ESC(block["title"]), head).wrap(colw, 2000)[1] + 7 + content(block).wrap(colw, 4000)[1] + 19)
-        cut = min(range(1, len(heights)), key=lambda k: max(sum(heights[:k]), sum(heights[k:]))) if len(heights)>1 else -1
-        balanced = cut > 0 and max(sum(heights[:cut]),sum(heights[cut:])) <= ytop - 54 + 19
-        for block_index, block in enumerate(spec["blocks"]):
-            if balanced and block_index == cut:
-                col, y = 1, ytop
-            kind = block.get("kind", "text")
-            title = Paragraph(ESC(block["title"]), head)
-            text = ESC(block["text"]).replace("\n", "<br/>")
-            if kind == "code":
-                text = text.replace(" ", "&#160;")
-            para = content(block)
-            _, hh = title.wrap(colw, 100)
-            _, bh = para.wrap(colw, 2000)
-            needed = hh + bh + 7 if hh + bh + 7 <= ytop - 54 else hh + 48 + 18
-            if y - needed < 54:
-                if col == 0:
-                    col, y = 1, ytop
-                else:
-                    c.showPage(); ytop = frame(spec["title"], spec["kicker"], True); col, y = 0, ytop
-            x = margin + col * (colw + gap)
-            title.drawOn(c, x, y - hh); y -= hh + 7
-            pending = [para]
-            while pending:
-                item = pending.pop(0)
-                _, ih = item.wrap(colw, 2000)
-                avail = y - 54
-                if ih <= avail:
-                    item.drawOn(c, x, y - ih); y -= ih + 19
-                else:
-                    parts = item.split(colw, avail)
-                    if parts:
-                        _, fh = parts[0].wrap(colw, avail)
-                        parts[0].drawOn(c, x, y - fh)
-                        pending = parts[1:] + pending
-                    else:
-                        pending.insert(0, item)
-                    if col == 0:
-                        col, y = 1, ytop
-                    else:
-                        c.showPage(); ytop = frame(spec["title"], spec["kicker"], True); col, y = 0, ytop
-                    x = margin + col * (colw + gap)
-                    label = Paragraph(ESC(block["title"] + " · продолжение"), head)
-                    _, lh = label.wrap(colw, 100); label.drawOn(c, x, y - lh); y -= lh + 7
-        c.showPage()
-    c.save()
+        if name=='Список предметных областей' or len(story)<10 or any(b.get('kind')=='image' for b in spec['blocks']):
+            story.append(PageBreak())
+        else:
+            story.append(Spacer(1,16))
+        heading(spec['title'])
+        compact=spec['title'].startswith(('Выборочный сбор /','Сбор по порядку /','Подбор и доставка /','Ограниченная вместимость /','Комплектование /','Ключи, переключатели и доступ /'))
+        body_style=compact_body if compact else body
+        head_style=compact_head if compact else head
+        for block in spec['blocks']:
+            kind=block.get('kind','text')
+            if kind!='link': story.append(Paragraph(ESC(block['title']),head_style))
+            if kind=='code':
+                for line in block['text'].splitlines():
+                    if pdfmetrics.stringWidth(line,'Mono',9.2)>width:
+                        raise ValueError('Code line too long: '+line)
+                story.append(Preformatted(block['text'],mono))
+            elif kind=='image':
+                im=FlowImage(str(ROOT/block['path']));im._restrictSize(width,320)
+                story.append(KeepTogether([im,Spacer(1,8),Paragraph(ESC(block['text']),body_style)]))
+            elif kind=='link':
+                text='<link href="'+ESC(block['href'])+'" color="#125eab">'+ESC(block['title'])+'</link><br/>'+ESC(block['text'])
+                story.append(Paragraph(text,body_style))
+            else: story.append(Paragraph(ESC(block['text']).replace('\n','<br/>'),body_style))
+    def frame(c,doc):
+        c.setTitle(name+' · '+data['title']);c.setAuthor(data['organization'])
+        c.setFillColor(colors.HexColor('#ed131c'));c.rect(38,H-27,28,4,fill=1,stroke=0)
+        c.setFont('Body',8);c.setFillColor(colors.HexColor('#626975'))
+        c.drawString(78,H-28,'ПМ.12 / Методические материалы / Версия '+data['version'])
+        c.setStrokeColor(colors.HexColor('#dfe1e5'));c.line(38,32,W-38,32)
+        c.drawString(38,18,'ПМ.12 / '+name);c.drawRightString(W-38,18,str(doc.page))
+        records.append({'number':doc.page,'title':name})
+    SimpleDocTemplate(str(path),pagesize=(W,H),leftMargin=38,rightMargin=38,
+        topMargin=45,bottomMargin=45).build(story,onFirstPage=frame,onLaterPages=frame)
     return records
 
-def block_html(block):
+
+def report_template(data):
+    family="font-family:'Times New Roman';color:#000;"
+    para=family+'font-size:14pt;text-align:justify;line-height:1.5;text-indent:1.25cm;'
+    h2=family+'font-size:14pt;text-align:justify;line-height:1.5;'
+    result=['<div style="'+family+'">', '<h1 style="'+family+'font-size:16pt;text-align:center;line-height:1.5;text-transform:uppercase">ОТЧЁТ ПО УЧЕБНОЙ ПРАКТИКЕ ПМ.12</h1>']
+    for label in ['ФИО','Группа','Номер варианта','Предметная область','Дата','Версия программы Unity','Ссылка на репозиторий проекта']:
+        result.append('<p style="'+para+'">'+label+': ____________________</p>')
+    number=0
+    for section in data['report']['sections']:
+        result.extend(['<h2 style="'+h2+'">'+ESC(section['title'])+'</h2>', '<p style="'+para+'">'+ESC(section['prompt'])+'</p>'])
+        for caption in section['screenshots']:
+            number+=1
+            result.extend(['<div style="page-break-inside:avoid;break-inside:avoid">',
+                '<table width="100%" border="1" cellspacing="0" cellpadding="0" style="border-collapse:collapse"><tr><td height="220" style="border:1px solid #000;height:220px;text-align:center;vertical-align:middle;'+family+'font-size:12pt">Вставьте скриншот</td></tr></table>',
+                '<p style="'+family+'font-size:12pt;text-align:center;line-height:1">Рисунок '+str(number)+' — '+ESC(caption)+'</p></div>'])
+    result.append('</div>');return '\n'.join(result)+'\n'
+
+def block_html(block, site_url=""):
+    block=dict(block)
+    prefix=site_url.rstrip("/")+"/"
+    if site_url and block.get("href", "").startswith(prefix): block["href"]=block["href"][len(prefix):]
+    if block.get('kind')=='link':
+        return '<section class="block"><h3><a href="'+ESC(block['href'])+'">'+ESC(block['title'])+'</a></h3><p>'+ESC(block['text'])+'</p></section>'
+
     if block.get('kind') == 'image':
         filename=Path(block['path']).name
         return f'<figure class="block screenshot"><h3>{ESC(block["title"])}</h3><img src="assets/screenshots/{ESC(filename)}" alt="{ESC(block.get("alt",block["title"]))}"><figcaption>{ESC(block["text"])}</figcaption></figure>'
@@ -293,15 +209,15 @@ def block_html(block):
     if tag != "pre": content = content.replace("\n", "<br>")
     return f'<section class="block {ESC(block.get("kind", "text"))}"><h3>{ESC(block["title"])}</h3><{tag}>{content}</{tag}></section>'
 
-def page_html(page, i):
+def page_html(page, i, site_url=""):
     anchor = page.get("anchor", f"page-{i}")
-    return f'<article class="lesson" id="{anchor}"><p class="eyebrow">{ESC(page["kicker"])}</p><h2>{ESC(page["title"])}</h2><div class="blocks">' + "".join(block_html(b) for b in page["blocks"]) + '</div></article>'
+    return f'<article class="lesson" id="{anchor}"><p class="eyebrow">{ESC(page["kicker"])}</p><h2>{ESC(page["title"])}</h2><div class="blocks">' + "".join(block_html(b, site_url) for b in page["blocks"]) + '</div></article>'
 
 def shell(data, active, title, lead, body):
     links = [("index.html", "Задание"), ("lessons.html", "Инструкция и образец"), ("areas.html", "Предметные области")]
     nav = "".join(f'<a {"aria-current=page" if url == active else ""} href="{url}">{label}</a>' for url, label in links)
     mark = '<span class="badge">Шаблон для заполнения</span>' if data["status"] == "template" else '<span class="badge">Заполненный пример</span>' if data['status']=='example' else '<span class="badge">Учебный комплект</span>'
-    return f'''<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="Универсальный шаблон практик: страницы для вебинара и автономные учебные PDF."><title>{ESC(title)} · {ESC(data['title'])}</title><link rel="icon" href="assets/favicon.svg"><link rel="stylesheet" href="assets/style.css"></head><body><a class="skip" href="#main">Перейти к содержанию</a><header class="shell top"><a class="brand" href="index.html"><span class="emblem">ПР</span><span><strong>Практика / Методические материалы</strong><small>{ESC(data['subtitle'])}</small></span></a><span class="version">Версия {ESC(data['version'])}</span></header><div class="shell"><nav aria-label="Основная навигация">{nav}</nav><main id="main"><section class="hero"><p class="eyebrow">Учебный маршрут / 2026</p><h1>{ESC(title)}</h1><p>{ESC(lead)}</p>{mark}</section>{body}</main><footer><span>Материалы для обзора преподавателем</span><span>PDF A4 · альбомная ориентация · единый источник</span></footer></div></body></html>'''
+    return f'''<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="Универсальный шаблон практик: страницы для вебинара и автономные учебные PDF."><title>{ESC(title)} · {ESC(data['title'])}</title><link rel="icon" href="assets/favicon.svg"><link rel="stylesheet" href="assets/style.css"></head><body><a class="skip" href="#main">Перейти к содержанию</a><header class="shell top"><a class="brand" href="index.html"><span class="emblem">ПР</span><span><strong>Практика / Методические материалы</strong><small>{ESC(data['subtitle'])}</small></span></a><span class="version">Версия {ESC(data['version'])}</span></header><div class="shell"><nav aria-label="Основная навигация">{nav}</nav><main id="main"><section class="hero"><p class="eyebrow">Учебный маршрут / 2026</p><h1>{ESC(title)}</h1><p>{ESC(lead)}</p>{mark}</section>{body}</main><footer><span>Материалы для самостоятельной работы и проверки</span><span>PDF A4 · альбомная ориентация · единый источник</span></footer></div></body></html>'''
 
 def build(data):
     # Only this generated directory is replaced; never delete source directories.
@@ -322,9 +238,12 @@ def build(data):
     meta=data['meta']
     assignment=data['assignment']+data['areas']
     manifest={
-        'assignment':pdf(OUT/'downloads/assignment.pdf',meta,assignment,'Задание студенту'),
+        'assignment':pdf(OUT/'downloads/assignment.pdf',meta,assignment,'Список предметных областей'),
         'guide':pdf(OUT/'downloads/guide.pdf',meta,data['guide'],'Пошаговая инструкция'),
     }
+    (OUT/'downloads/report-template.md').write_text(report_template(data),encoding='utf-8')
+    manifest['release']=data.get('_release',False)
+    manifest['source_sha256']=source_fingerprint()
     (OUT/'manifest.json').write_text(json.dumps(manifest,ensure_ascii=False,indent=2),encoding='utf-8')
     for item in data['code_files']:
         shutil.copyfile(ROOT/item['path'],OUT/'downloads'/item['name'])
@@ -337,15 +256,15 @@ def build(data):
             if source.is_dir() or any(part in excluded for part in relative.parts):
                 continue
             package.write(source,Path('CrystalRoute')/relative)
-    def pages(items): return ''.join(page_html(p,i) for i,p in enumerate(items,1))
+    def pages(items): return ''.join(page_html(p,i,meta.get("site_url", "")) for i,p in enumerate(items,1))
     def write(file,title,lead,body):
         (OUT/file).write_text(shell(meta,file,title,lead,body),encoding='utf-8')
     write('index.html',meta['title'],'Условия, этапы выполнения и сдача задания.',
-          '<div class="downloads"><a class="button primary" href="downloads/assignment.pdf">Задание студенту · PDF</a></div>'+pages(data['assignment']))
-    code_links=''.join(f'<a class="button" href="downloads/{ESC(item["name"])}">{ESC(item["name"])}</a>' for item in data['code_files'])
-    write('lessons.html','Как выполнить задание','Теория, пронумерованные действия, крупные снимки работающего прототипа и полный код. Выдаётся по решению преподавателя.',
-          '<div class="downloads"><a class="button primary" href="downloads/guide.pdf">Инструкция · PDF</a><a class="button primary" href="downloads/CrystalRoute-UnityProject.zip">Unity-проект · ZIP</a>'+code_links+'</div>'+pages(data['guide']))
-    write('areas.html','Предметные области','Индивидуальные условия задания. Номер варианта назначает преподаватель.',pages(data['areas']))
+          '<div class="downloads"><a class="button primary" href="downloads/assignment.pdf">Список предметных областей · PDF</a></div>'+pages(data['assignment']))
+    code_links=''.join(f'<a class="button" href="downloads/{ESC(item["name"])}">Скачать исходник {ESC(item["name"])} для сверки кода</a>' for item in data['code_files'])
+    write('lessons.html','Как выполнить задание','Объяснения, логические блоки кода, рабочие контрольные точки и снимки интерфейса. Движение → взаимодействия → индивидуальное правило → проверка и повтор.',
+          '<div class="downloads"><a class="button primary" href="downloads/guide.pdf">Скачать методичку по созданию и проверке игры (PDF)</a><a class="button primary" href="downloads/CrystalRoute-UnityProject.zip">Скачать пример «Кристальный маршрут» для сверки (ZIP)</a><a class="button" href="downloads/report-template.md">Скачать общий шаблон отчёта</a>'+code_links+'</div>'+pages(data['guide']))
+    write('areas.html','Список предметных областей','Индивидуальные условия задания. Номер варианта назначает преподаватель.',pages(data['areas']))
     # Compatibility addresses contain no educational content or duplicate files.
     for old,new in [('example.html','index.html'),('example-guide.html','lessons.html'),('example-result.html','lessons.html')]:
         (OUT/old).write_text(f'<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta http-equiv="refresh" content="0;url={new}"><title>Страница перенесена</title></head><body><a href="{new}">Открыть материал</a></body></html>',encoding='utf-8')
@@ -358,4 +277,10 @@ if __name__=='__main__':
     args=parser.parse_args()
     data=load_course()
     validate(data,args.release)
+    if args.release:
+        proof=json.loads((ROOT/'verification/release.json').read_text(encoding='utf-8'))
+        actual=source_fingerprint()
+        if proof.get('source_sha256')!=actual or not all(proof.get('checks',{}).get(k)==True for k in ['unity','variants','visual','audit']):
+            raise ValueError('Current real verification and audit reconciliation required')
+    data['_release']=args.release
     build(data)

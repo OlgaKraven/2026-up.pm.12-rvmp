@@ -11,3 +11,6 @@ unity-project/obj/
 unity-project/UserSettings/
 unity-project/Build/
 .DS_Store
+
+passport.md
+verification/
