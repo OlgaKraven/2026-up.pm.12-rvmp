@@ -11,7 +11,7 @@ import zipfile
 from lxml import etree
 import pdfplumber
 from pypdf import PdfReader
-from build import ROOT,load_course,validate,source_fingerprint,EXCLUDED
+from build import ROOT,load_course,validate,source_fingerprint,canonical_bytes,EXCLUDED
 
 logging.getLogger('pdfminer').setLevel(logging.ERROR)
 
@@ -42,7 +42,7 @@ def check(site,release=False):
     assert manifest['source_sha256']==source_fingerprint(),'Rebuild changed source'
     assert manifest['release'] is release
     if release:assert all(manifest.get('checks',{}).get(k) is True for k in ('unity','variants','visual','audit'))
-    for name,sha in manifest['files'].items():assert hashlib.sha256((site/name).read_bytes()).hexdigest()==sha,name
+    for name,sha in manifest['files'].items():assert hashlib.sha256(canonical_bytes(site/name)).hexdigest()==sha,name
     result={'release':release,'source_sha256':manifest['source_sha256'],'variants':30,'stand_archives':0,'pdf':{}}
     for filename,pages in [('assignment.pdf',data['assignment']+data['guide']),('guide.pdf',data['areas'])]:
         reader=PdfReader(site/'downloads'/filename)
@@ -72,7 +72,7 @@ def check(site,release=False):
     with zipfile.ZipFile(site/'downloads/CrystalRoute-UnityProject.zip') as z:
         for name in z.namelist():
             p=Path(name);assert not EXCLUDED.intersection(p.parts)
-            assert z.read(name)==(ROOT/'unity-project'/Path(*p.parts[1:])).read_bytes(),name
+            assert z.read(name)==canonical_bytes(ROOT/'unity-project'/Path(*p.parts[1:])),name
     ns={'w':'http://schemas.openxmlformats.org/wordprocessingml/2006/main'}
     master=ROOT/'forms/template/Отчет о выполнении.docx'
     report=site/'downloads/Отчет о выполнении.docx'

@@ -171,5 +171,3 @@ def figure_slot(doc, label, tag, number, bookmark_name):
     p.add_run("Рисунок ")
     field(p, r"SEQ Рисунок \* ARABIC", str(number), bookmark=(number, bookmark_name))
     p.add_run(" — " + label[:1].lower() + label[1:])
-
-

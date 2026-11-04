@@ -17,6 +17,11 @@ ROOT=Path(__file__).resolve().parents[1]
 BASE='https://olgakraven.github.io/2026-up.pm.12-rvmp/'
 EXCLUDED={'Library','Temp','Logs','obj','UserSettings','Build','Builds'}
 ESC=html.escape
+TEXT_SUFFIXES={'.json','.py','.js','.cjs','.html','.css','.svg','.cs','.meta','.unity','.asset','.txt','.md','.yml','.yaml','.xml'}
+
+def canonical_bytes(path):
+    value=path.read_bytes()
+    return value.replace(b'\r\n',b'\n') if path.suffix.lower() in TEXT_SUFFIXES else value
 
 def load_course():
     data=json.loads((ROOT/'content/course.json').read_text(encoding='utf-8'))
@@ -39,7 +44,7 @@ def source_fingerprint(root=ROOT):
         paths.extend(p for p in (root/folder).rglob('*') if p.is_file()
                      and not EXCLUDED.union({'__pycache__'}).intersection(p.relative_to(root).parts))
     digest=hashlib.sha256()
-    for p in sorted(paths):digest.update(p.relative_to(root).as_posix().encode()+b'\0'+p.read_bytes()+b'\0')
+    for p in sorted(paths):digest.update(p.relative_to(root).as_posix().encode()+b'\0'+canonical_bytes(p)+b'\0')
     return digest.hexdigest()
 
 def validate(data,release=False):
@@ -119,7 +124,7 @@ def archive(out):
             if rel.parts[0] not in {'Assets','Packages','ProjectSettings'}:continue
             info=zipfile.ZipInfo(('CrystalRoute'/rel).as_posix(),(2026,11,4,0,0,0))
             info.compress_type=zipfile.ZIP_DEFLATED;info.external_attr=0o100644<<16
-            z.writestr(info,p.read_bytes())
+            z.writestr(info,canonical_bytes(p))
 
 def build(data,out,release=False):
     out=out.resolve()
@@ -152,7 +157,7 @@ def build(data,out,release=False):
     (out/'.nojekyll').touch()
     subprocess.run([os.environ.get('NODE_BIN','node'),str(ROOT/'scripts/export_pdf.cjs'),str(out)],check=True)
     from pypdf import PdfReader
-    files={p.relative_to(out).as_posix():hashlib.sha256(p.read_bytes()).hexdigest() for p in sorted(out.rglob('*')) if p.is_file()}
+    files={p.relative_to(out).as_posix():hashlib.sha256(canonical_bytes(p)).hexdigest() for p in sorted(out.rglob('*')) if p.is_file()}
     manifest={'release':release,'source_sha256':source_fingerprint(),'files':files,'pages':{name:len(PdfReader(out/'downloads'/name).pages) for name in ('assignment.pdf','guide.pdf')}}
     if release:manifest['checks']={k:True for k in ('unity','variants','visual','audit')}
     (out/'manifest.json').write_text(json.dumps(manifest,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
