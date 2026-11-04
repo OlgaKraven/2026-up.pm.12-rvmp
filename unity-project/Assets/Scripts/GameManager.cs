@@ -188,7 +188,7 @@ public class GameManager : MonoBehaviour
 
     public void Collect(Collectible item)
     {
-        if (!IsPlaying) return;
+        if (!IsPlaying || item == null || !createdObjects.Contains(item.gameObject)) return;
         collected++;
         createdObjects.Remove(item.gameObject);
         Destroy(item.gameObject);

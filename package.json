@@ -1,0 +1,5 @@
+{
+  "private": true,
+  "scripts": {"pdf": "node scripts/export_pdf.cjs work/site"},
+  "devDependencies": {"playwright": "1.62.1"}
+}
