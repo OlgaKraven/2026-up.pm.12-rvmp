@@ -99,7 +99,7 @@ def card(b,n,printing):
     if b['kind']=='code':body='<pre>'+ESC(b['text'])+'</pre>'
     elif b['kind']=='link':
         href=relative_link(b['href'],printing)
-        body=f'<p><a href="{ESC(href)}">{ESC(b["title"])}</a></p>'+paragraphs(b['text'])
+        body=f'<p><a href="{ESC(href)}">{ESC(b.get("label",b["title"]))}</a></p>'+paragraphs(b['text'])
     elif b['kind']=='diagram':body=paragraphs(f'Состояние: {b.get("count",0)} из {b.get("target",5)}. '+b['text'])
     else:body=paragraphs(b['text'])
     return f'<li class="step"><span class="number">{n}</span><section class="card"><h3>{ESC(b["title"])}</h3>{body}</section></li>'
@@ -140,16 +140,22 @@ def build(data,out,release=False):
     for f in data['code_files']:shutil.copyfile(ROOT/f['path'],out/'downloads'/f['name'])
     def pages(items,printing=False):return ''.join(chapter(p,i,printing) for i,p in enumerate(items,1))
     downloads='<div class="actions"><a class="button" href="downloads/assignment.pdf">Задание и методические рекомендации · PDF</a><a class="button" href="downloads/guide.pdf">Список предметных областей · PDF</a></div>'
+    selection=next(b for b in data['assignment'][0]['blocks'] if b['title']=='Первый шаг. Определите свой вариант')
     for name,title,items in [('index.html',data['meta']['title'],data['assignment']),('lessons.html','Инструкция и образец',data['guide']),('areas.html','Список предметных областей',data['areas'])]:
-        (out/name).write_text(shell(title,downloads+pages(items),name),encoding='utf-8')
+        start=''
+        if name=='areas.html':
+            index=''.join(f'<a href="#{ESC(p["anchor"])}">{i:02}</a>' for i,p in enumerate(items,1))
+            start='<ol class="steps">'+card(selection,1,False)+'</ol><div class="variant-index" aria-label="Номера вариантов">'+index+'</div>'
+        (out/name).write_text(shell(title,downloads+start+pages(items),name),encoding='utf-8')
     for name,title,items in [('print-method.html','Задание и методические рекомендации',data['assignment']+data['guide']),('print-areas.html','Список предметных областей',data['areas'])]:
         intro=f'<header class="hero"><div class="section-id">ПМ.12 / Прототип мобильной 2D-игры</div><h1>{title}</h1></header>'
         if name=='print-areas.html':
             conditions=next(b for b in data['assignment'][0]['blocks'] if b['title']=='Исходные данные и ресурсы')
             files=next(p for p in data['assignment'] if p.get('anchor')=='files')
-            method_link=next(b for b in data['areas'][0]['blocks'] if b.get('href','').endswith('/assignment.pdf'))
-            links=[method_link if b.get('href','').endswith('/guide.pdf') else b for b in files['blocks']]
-            intro+='<ol class="steps">'+card(conditions,1,True)+''.join(card(b,i,True) for i,b in enumerate(links,2))+'</ol>'
+            method_url=next(b['href'] for b in data['areas'][0]['blocks'] if b['kind']=='link')
+            method_link={'kind':'link','title':'Скачать методические рекомендации (PDF)','text':'Задание, общий образец и разделы по игровым правилам.','href':method_url}
+            links=[method_link]+[b for b in files['blocks'] if b.get('href','').endswith('.docx')]
+            intro+='<ol class="steps">'+card(selection,1,True)+card(conditions,2,True)+''.join(card(b,i,True) for i,b in enumerate(links,3))+'</ol>'
         section='method' if name=='print-method.html' else 'areas'
         (out/name).write_text(shell(title,f'<div class="{section}">'+intro+pages(items,True)+'</div>'),encoding='utf-8')
     for old,new in [('example.html','index.html'),('example-guide.html','lessons.html'),('example-result.html','lessons.html')]:

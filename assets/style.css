@@ -8,3 +8,16 @@
 
 .screenshot-crop{display:block;position:relative;overflow:hidden;width:100%;background:white;border:1px solid var(--line)}.screenshot-crop img{position:absolute;max-width:none!important;max-height:none!important;height:auto!important;border:0;object-fit:fill!important}
 @media print{.method .chapter{break-before:auto}.method .hero{margin-bottom:20pt}.method .doc-head{break-after:avoid}.method .chapter{margin-bottom:24pt}}
+
+.variant-index{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 24px}.variant-index a{min-width:36px;text-align:center;padding:4px;border:1px solid var(--line);border-radius:6px}
+@media print{
+    .areas .chapter{margin-bottom:0}
+    .areas .doc-head{padding:13pt 17pt 9pt;margin-bottom:10pt}
+    .areas .doc-head h2{margin:8pt 0 7pt;font-size:22pt;line-height:25pt}
+    .areas .step{padding-bottom:6pt}
+    .areas .number{top:8pt}
+    .areas .step:not(:last-child):after{top:30pt}
+    .areas .card{padding:7pt 11pt}
+    .areas .card h3{font-size:11.5pt;line-height:15pt;margin-bottom:4pt}
+    .areas .card p{line-height:14pt}
+}
