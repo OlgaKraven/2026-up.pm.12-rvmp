@@ -1,504 +1,55 @@
 {
-  "assignment": [
-    {
-      "number": 1,
-      "title": "Список предметных областей"
-    },
-    {
-      "number": 2,
-      "title": "Список предметных областей"
-    },
-    {
-      "number": 3,
-      "title": "Список предметных областей"
-    },
-    {
-      "number": 4,
-      "title": "Список предметных областей"
-    },
-    {
-      "number": 5,
-      "title": "Список предметных областей"
-    },
-    {
-      "number": 6,
-      "title": "Список предметных областей"
-    },
-    {
-      "number": 7,
-      "title": "Список предметных областей"
-    },
-    {
-      "number": 8,
-      "title": "Список предметных областей"
-    },
-    {
-      "number": 9,
-      "title": "Список предметных областей"
-    },
-    {
-      "number": 10,
-      "title": "Список предметных областей"
-    },
-    {
-      "number": 11,
-      "title": "Список предметных областей"
-    },
-    {
-      "number": 12,
-      "title": "Список предметных областей"
-    },
-    {
-      "number": 13,
-      "title": "Список предметных областей"
-    },
-    {
-      "number": 14,
-      "title": "Список предметных областей"
-    },
-    {
-      "number": 15,
-      "title": "Список предметных областей"
-    },
-    {
-      "number": 16,
-      "title": "Список предметных областей"
-    },
-    {
-      "number": 17,
-      "title": "Список предметных областей"
-    },
-    {
-      "number": 18,
-      "title": "Список предметных областей"
-    },
-    {
-      "number": 19,
-      "title": "Список предметных областей"
-    },
-    {
-      "number": 20,
-      "title": "Список предметных областей"
-    },
-    {
-      "number": 21,
-      "title": "Список предметных областей"
-    },
-    {
-      "number": 22,
-      "title": "Список предметных областей"
-    },
-    {
-      "number": 23,
-      "title": "Список предметных областей"
-    },
-    {
-      "number": 24,
-      "title": "Список предметных областей"
-    },
-    {
-      "number": 25,
-      "title": "Список предметных областей"
-    },
-    {
-      "number": 26,
-      "title": "Список предметных областей"
-    },
-    {
-      "number": 27,
-      "title": "Список предметных областей"
-    },
-    {
-      "number": 28,
-      "title": "Список предметных областей"
-    },
-    {
-      "number": 29,
-      "title": "Список предметных областей"
-    },
-    {
-      "number": 30,
-      "title": "Список предметных областей"
-    },
-    {
-      "number": 31,
-      "title": "Список предметных областей"
-    },
-    {
-      "number": 32,
-      "title": "Список предметных областей"
-    },
-    {
-      "number": 33,
-      "title": "Список предметных областей"
-    },
-    {
-      "number": 34,
-      "title": "Список предметных областей"
-    },
-    {
-      "number": 35,
-      "title": "Список предметных областей"
-    },
-    {
-      "number": 36,
-      "title": "Список предметных областей"
-    }
-  ],
-  "guide": [
-    {
-      "number": 1,
-      "title": "Пошаговая инструкция"
-    },
-    {
-      "number": 2,
-      "title": "Пошаговая инструкция"
-    },
-    {
-      "number": 3,
-      "title": "Пошаговая инструкция"
-    },
-    {
-      "number": 4,
-      "title": "Пошаговая инструкция"
-    },
-    {
-      "number": 5,
-      "title": "Пошаговая инструкция"
-    },
-    {
-      "number": 6,
-      "title": "Пошаговая инструкция"
-    },
-    {
-      "number": 7,
-      "title": "Пошаговая инструкция"
-    },
-    {
-      "number": 8,
-      "title": "Пошаговая инструкция"
-    },
-    {
-      "number": 9,
-      "title": "Пошаговая инструкция"
-    },
-    {
-      "number": 10,
-      "title": "Пошаговая инструкция"
-    },
-    {
-      "number": 11,
-      "title": "Пошаговая инструкция"
-    },
-    {
-      "number": 12,
-      "title": "Пошаговая инструкция"
-    },
-    {
-      "number": 13,
-      "title": "Пошаговая инструкция"
-    },
-    {
-      "number": 14,
-      "title": "Пошаговая инструкция"
-    },
-    {
-      "number": 15,
-      "title": "Пошаговая инструкция"
-    },
-    {
-      "number": 16,
-      "title": "Пошаговая инструкция"
-    },
-    {
-      "number": 17,
-      "title": "Пошаговая инструкция"
-    },
-    {
-      "number": 18,
-      "title": "Пошаговая инструкция"
-    },
-    {
-      "number": 19,
-      "title": "Пошаговая инструкция"
-    },
-    {
-      "number": 20,
-      "title": "Пошаговая инструкция"
-    },
-    {
-      "number": 21,
-      "title": "Пошаговая инструкция"
-    },
-    {
-      "number": 22,
-      "title": "Пошаговая инструкция"
-    },
-    {
-      "number": 23,
-      "title": "Пошаговая инструкция"
-    },
-    {
-      "number": 24,
-      "title": "Пошаговая инструкция"
-    },
-    {
-      "number": 25,
-      "title": "Пошаговая инструкция"
-    },
-    {
-      "number": 26,
-      "title": "Пошаговая инструкция"
-    },
-    {
-      "number": 27,
-      "title": "Пошаговая инструкция"
-    },
-    {
-      "number": 28,
-      "title": "Пошаговая инструкция"
-    },
-    {
-      "number": 29,
-      "title": "Пошаговая инструкция"
-    },
-    {
-      "number": 30,
-      "title": "Пошаговая инструкция"
-    },
-    {
-      "number": 31,
-      "title": "Пошаговая инструкция"
-    },
-    {
-      "number": 32,
-      "title": "Пошаговая инструкция"
-    },
-    {
-      "number": 33,
-      "title": "Пошаговая инструкция"
-    },
-    {
-      "number": 34,
-      "title": "Пошаговая инструкция"
-    },
-    {
-      "number": 35,
-      "title": "Пошаговая инструкция"
-    },
-    {
-      "number": 36,
-      "title": "Пошаговая инструкция"
-    },
-    {
-      "number": 37,
-      "title": "Пошаговая инструкция"
-    },
-    {
-      "number": 38,
-      "title": "Пошаговая инструкция"
-    },
-    {
-      "number": 39,
-      "title": "Пошаговая инструкция"
-    },
-    {
-      "number": 40,
-      "title": "Пошаговая инструкция"
-    },
-    {
-      "number": 41,
-      "title": "Пошаговая инструкция"
-    },
-    {
-      "number": 42,
-      "title": "Пошаговая инструкция"
-    },
-    {
-      "number": 43,
-      "title": "Пошаговая инструкция"
-    },
-    {
-      "number": 44,
-      "title": "Пошаговая инструкция"
-    },
-    {
-      "number": 45,
-      "title": "Пошаговая инструкция"
-    },
-    {
-      "number": 46,
-      "title": "Пошаговая инструкция"
-    },
-    {
-      "number": 47,
-      "title": "Пошаговая инструкция"
-    },
-    {
-      "number": 48,
-      "title": "Пошаговая инструкция"
-    },
-    {
-      "number": 49,
-      "title": "Пошаговая инструкция"
-    },
-    {
-      "number": 50,
-      "title": "Пошаговая инструкция"
-    },
-    {
-      "number": 51,
-      "title": "Пошаговая инструкция"
-    },
-    {
-      "number": 52,
-      "title": "Пошаговая инструкция"
-    },
-    {
-      "number": 53,
-      "title": "Пошаговая инструкция"
-    },
-    {
-      "number": 54,
-      "title": "Пошаговая инструкция"
-    },
-    {
-      "number": 55,
-      "title": "Пошаговая инструкция"
-    },
-    {
-      "number": 56,
-      "title": "Пошаговая инструкция"
-    },
-    {
-      "number": 57,
-      "title": "Пошаговая инструкция"
-    },
-    {
-      "number": 58,
-      "title": "Пошаговая инструкция"
-    },
-    {
-      "number": 59,
-      "title": "Пошаговая инструкция"
-    },
-    {
-      "number": 60,
-      "title": "Пошаговая инструкция"
-    },
-    {
-      "number": 61,
-      "title": "Пошаговая инструкция"
-    },
-    {
-      "number": 62,
-      "title": "Пошаговая инструкция"
-    },
-    {
-      "number": 63,
-      "title": "Пошаговая инструкция"
-    },
-    {
-      "number": 64,
-      "title": "Пошаговая инструкция"
-    },
-    {
-      "number": 65,
-      "title": "Пошаговая инструкция"
-    },
-    {
-      "number": 66,
-      "title": "Пошаговая инструкция"
-    },
-    {
-      "number": 67,
-      "title": "Пошаговая инструкция"
-    },
-    {
-      "number": 68,
-      "title": "Пошаговая инструкция"
-    },
-    {
-      "number": 69,
-      "title": "Пошаговая инструкция"
-    },
-    {
-      "number": 70,
-      "title": "Пошаговая инструкция"
-    },
-    {
-      "number": 71,
-      "title": "Пошаговая инструкция"
-    },
-    {
-      "number": 72,
-      "title": "Пошаговая инструкция"
-    },
-    {
-      "number": 73,
-      "title": "Пошаговая инструкция"
-    },
-    {
-      "number": 74,
-      "title": "Пошаговая инструкция"
-    },
-    {
-      "number": 75,
-      "title": "Пошаговая инструкция"
-    },
-    {
-      "number": 76,
-      "title": "Пошаговая инструкция"
-    },
-    {
-      "number": 77,
-      "title": "Пошаговая инструкция"
-    },
-    {
-      "number": 78,
-      "title": "Пошаговая инструкция"
-    },
-    {
-      "number": 79,
-      "title": "Пошаговая инструкция"
-    },
-    {
-      "number": 80,
-      "title": "Пошаговая инструкция"
-    },
-    {
-      "number": 81,
-      "title": "Пошаговая инструкция"
-    },
-    {
-      "number": 82,
-      "title": "Пошаговая инструкция"
-    },
-    {
-      "number": 83,
-      "title": "Пошаговая инструкция"
-    },
-    {
-      "number": 84,
-      "title": "Пошаговая инструкция"
-    },
-    {
-      "number": 85,
-      "title": "Пошаговая инструкция"
-    },
-    {
-      "number": 86,
-      "title": "Пошаговая инструкция"
-    },
-    {
-      "number": 87,
-      "title": "Пошаговая инструкция"
-    },
-    {
-      "number": 88,
-      "title": "Пошаговая инструкция"
-    }
-  ],
   "release": true,
-  "source_sha256": "e5afadadd57af9ba4c531f3ba065527318225cbb808321823c829d0f75adafd3"
+  "source_sha256": "0bb564b63f550e2f9d278fa2eb25d9dcd02768a5fdaff9c99c76ba481d624948",
+  "files": {
+    ".nojekyll": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "areas.html": "9fa3ad7ea9e618892a0d9b6e484f509a01ab6bf21d815cbff9623bed1311f0d0",
+    "assets/favicon.svg": "a858bf2fe727230d8ce9ad583c22bd19c344c57d28c3a13631130948a6eb17a7",
+    "assets/fonts/GolosText-variable.ttf": "17bb58fb69aec2dfb047a2ebf52534023e9b688c97a6b7ac795b0a72912c2063",
+    "assets/fonts/OFL.txt": "270e8bfc5b8f26a2ca1433cf4d65d6d93771d2131715a57460702c0df4057c06",
+    "assets/screenshots/game-lost-0-of-5.png": "e02cd18da4ee311d92d7aef642758522a7986458796364868dd26ea3811b987b",
+    "assets/screenshots/game-playing-3-of-5.png": "0fb21f9ac12e074e01f3596f9131c3fdea06d2637c4c4e4095489179040196d3",
+    "assets/screenshots/game-won-5-of-5.png": "5a4653d7db002d290679c12b74e4bfdff93c074dfbe14bb64813e1acee44ed64",
+    "assets/screenshots/unity-editor-layout.png": "0d7e68e25ad5c943d9df475566fb77e3f1ce49a53d237d6701013f2ec1097aff",
+    "assets/screenshots/verified-loss.png": "5a3732610ccc828026202d17bec43167d0c7d9e98c445539700676289d91e7b6",
+    "assets/screenshots/verified-mechanic-0.png": "b13fb41903133ddda9d7399a8cda33e94cd818fe6599d65ead74db3e58d7ccbe",
+    "assets/screenshots/verified-mechanic-1.png": "fd715662422e6a5d7c2eac62a58ae506e6aa7b25b3bb95d8368a9cc56535a803",
+    "assets/screenshots/verified-mechanic-2.png": "4084008cfa4a730dfbb9873b1645aea05abecf454f947e25b8d291404861b252",
+    "assets/screenshots/verified-mechanic-3.png": "082432f6026f19c8056daaf0abb1203891a117a62efe17848d8a77edeb6ecce1",
+    "assets/screenshots/verified-mechanic-4.png": "3d137b5910226187cf95509691bba90300f646b2c93ed694616060f8ca218169",
+    "assets/screenshots/verified-mechanic-5.png": "0d8970fc95a90c0b506161f9c21c8856caf297d747d151d929bc7481bb6dfcbd",
+    "assets/screenshots/verified-restart.png": "e1f06e709b9fef41afe6cf328f99c036e831e40ac6b1342391130109c80f5122",
+    "assets/screenshots/verified-start.png": "2635f9443354d82aac9bc986b06703b329750e866e2731d1e8e6f66f421bd01c",
+    "assets/screenshots/verified-win.png": "b5ead878f7c8013b090b1abb1ba95a9a9564f49fb872d1cd72246d89fba7f399",
+    "assets/screenshots/vscode-visual-settings.png": "046d46272cece3030f002e7d768fff09545161a902f78261f00c9c38c203e43b",
+    "assets/style.css": "0bcb971b3682b803ea3edd39ccb5261f49201b3547108b8c91b637dacc9809fe",
+    "downloads/Collectible.cs": "9f3fb544206c960b8a1548e5f81f3bda86865ec180d4c0d46ae6e43dca47b711",
+    "downloads/CrystalRoute-UnityProject.zip": "1df2323f57588b366ce689c314837a3d8f28ea759022a8b9c3c5838065d34880",
+    "downloads/ExitZone.cs": "fed12379fddf3dfb117314e3049a4381bf2dd4bdf48434317483ac16365c93da",
+    "downloads/GameBootstrap.cs": "3df39a80038749edff2e256670913a527f4752623cb3cf46204362948efb97ed",
+    "downloads/GameManager.cs": "ed56b82a62c0c651e83a7c291a0c73d96485aa56088c14f2742df094e046ef64",
+    "downloads/Hazard.cs": "70d048407a38d80182643c44e1962a70aa369f7103229c9c2feacc884e88772b",
+    "downloads/MechanicModels.cs": "9cca8d86fe43ffabbb6c0f1bdbb8fce091419cd8a7be88986a2a6a65642e1050",
+    "downloads/PlayerController.cs": "c9d7b30dff8d5b658601d6fc760a6639794d0820fa16925159e7a754921d4dc6",
+    "downloads/assignment.pdf": "48f29b6e450e05f59bfd130224e5b0a7f5c9145cc4eccc0277ca0e61f19a2049",
+    "downloads/guide.pdf": "7277fda18f06690390fca7c16b587767e2954066be4590e97ce50d77f147b206",
+    "downloads/Отчет о выполнении.docx": "01a102d530c02664e3887d56adec434925bd67389db8e1029ed795509a7c7592",
+    "example-guide.html": "f7846aad6e2affdf250ab1e83e654ed729e09d0546fc1a33bbe3b3892f3b690d",
+    "example-result.html": "f7846aad6e2affdf250ab1e83e654ed729e09d0546fc1a33bbe3b3892f3b690d",
+    "example.html": "5bd7ca24fbabd2dab4d9df9b101a214770b5af45c068361ed7629478fc1c6e5e",
+    "index.html": "83836b55bd0286a05163067e694bc5c07e5d5b04ae148a3c2b161d85a6a0f6bc",
+    "lessons.html": "6fe721049d25a062ffab1b9cfc52f00ae85443128f8e9eb1e46f0e32a29fb3d5",
+    "print-areas.html": "7b09694b93eaddff7ae0af0b37fcc35531e33849e7bf729ccde22acaa9e27906",
+    "print-method.html": "3d83427303d44d8049f6a0f47ba43b166586575e5ded6442c1620b681d75889b"
+  },
+  "pages": {
+    "assignment.pdf": 110,
+    "guide.pdf": 31
+  },
+  "checks": {
+    "unity": false,
+    "variants": true,
+    "visual": true,
+    "audit": true
+  }
 }

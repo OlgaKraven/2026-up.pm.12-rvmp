@@ -11,7 +11,7 @@ import zipfile
 from lxml import etree
 import pdfplumber
 from pypdf import PdfReader
-from build import ROOT,load_course,validate,source_fingerprint,canonical_bytes,EXCLUDED
+from build import ROOT,load_course,validate,source_fingerprint,canonical_bytes,release_checks,PDF_NAMES,EXCLUDED
 
 logging.getLogger('pdfminer').setLevel(logging.ERROR)
 
@@ -41,7 +41,12 @@ def check(site,release=False):
     manifest=json.loads((site/'manifest.json').read_text(encoding='utf-8'))
     assert manifest['source_sha256']==source_fingerprint(),'Rebuild changed source'
     assert manifest['release'] is release
-    if release:assert all(manifest.get('checks',{}).get(k) is True for k in ('unity','variants','visual','audit'))
+    if release:
+        checks=manifest.get('checks',{})
+        assert all(checks.get(k) is v for k,v in release_checks(data).items()), 'Incorrect release scope'
+        if data['meta']['status']=='materials-ready':
+            for name in PDF_NAMES:
+                assert (site/'downloads'/name).read_bytes()==(ROOT/'materials'/name).read_bytes(), name
     for name,sha in manifest['files'].items():assert hashlib.sha256(canonical_bytes(site/name)).hexdigest()==sha,name
     result={'release':release,'source_sha256':manifest['source_sha256'],'variants':30,'stand_archives':0,'pdf':{}}
     for filename,pages in [('assignment.pdf',data['assignment']+data['guide']),('guide.pdf',data['areas'])]:
@@ -100,6 +105,7 @@ def check(site,release=False):
         assert height.get('{'+ns['w']+'}hRule')=='atLeast'
     result['report']={'common_master_preserved':True,'stages':5,'figure_slots':14,'unique_fields':True}
     result['unity_executed']=False
+    (ROOT/'work').mkdir(exist_ok=True)
     (ROOT/'work/material-check.json').write_text(json.dumps(result,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
     print('PASS: 30 cards without stands, links, source ZIP, PDF text/fonts/bounds and common report; Unity not executed')
 

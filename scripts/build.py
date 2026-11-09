@@ -15,6 +15,7 @@ import zipfile
 
 ROOT=Path(__file__).resolve().parents[1]
 BASE='https://olgakraven.github.io/2026-up.pm.12-rvmp/'
+PDF_NAMES=('assignment.pdf','guide.pdf')
 EXCLUDED={'Library','Temp','Logs','obj','UserSettings','Build','Builds'}
 ESC=html.escape
 TEXT_SUFFIXES={'.json','.py','.js','.cjs','.html','.css','.svg','.cs','.meta','.unity','.asset','.txt','.md','.yml','.yaml','.xml'}
@@ -43,6 +44,7 @@ def source_fingerprint(root=ROOT):
     for folder in ('content','scripts','assets','tutorial','unity-project','forms/template'):
         paths.extend(p for p in (root/folder).rglob('*') if p.is_file()
                      and not EXCLUDED.union({'__pycache__'}).intersection(p.relative_to(root).parts))
+    paths.extend(p for name in PDF_NAMES if (p:=root/'materials'/name).is_file())
     digest=hashlib.sha256()
     for p in sorted(paths):digest.update(p.relative_to(root).as_posix().encode()+b'\0'+canonical_bytes(p)+b'\0')
     return digest.hexdigest()
@@ -63,12 +65,22 @@ def validate(data,release=False):
                 if b.get('code_file')==item['name']:covered.extend(range(*b['code_lines']))
         assert covered==list(range(len(data['_code_sources'][item['name']].splitlines()))),item['name']
     if release:
-        if data['meta']['status']!='ready':raise ValueError('Not accepted for release')
+        if data['meta']['status'] not in {'ready','materials-ready'}:raise ValueError('Not accepted for release')
 
-def require_release_evidence():
+def release_checks(data):
+    return {
+        'unity': data['meta']['status']=='ready',
+        'variants': True,
+        'visual': True,
+        'audit': True,
+    }
+
+def require_release_evidence(data):
     proof=json.loads((ROOT/'verification/release.json').read_text(encoding='utf-8'))
-    if proof.get('source_sha256')!=source_fingerprint() or not all(proof.get('checks',{}).get(k) is True for k in ('unity','variants','visual','audit')):
-        raise ValueError('Current real Unity, variant, visual and audit evidence required')
+    expected=release_checks(data)
+    checks=proof.get('checks',{})
+    if proof.get('source_sha256')!=source_fingerprint() or any(checks.get(k) is not v for k,v in expected.items()):
+        raise ValueError('Current evidence matching the release scope is required')
 
 def relative_link(href,printing=False):
     return href if printing or not href.startswith(BASE) else href[len(BASE):]
@@ -161,16 +173,20 @@ def build(data,out,release=False):
     for old,new in [('example.html','index.html'),('example-guide.html','lessons.html'),('example-result.html','lessons.html')]:
         (out/old).write_text(f'<!doctype html><meta http-equiv="refresh" content="0;url={new}"><a href="{new}">Открыть материал</a>',encoding='utf-8')
     (out/'.nojekyll').touch()
-    subprocess.run([os.environ.get('NODE_BIN','node'),str(ROOT/'scripts/export_pdf.cjs'),str(out)],check=True)
+    if data['meta']['status']=='materials-ready':
+        for name in PDF_NAMES:
+            shutil.copyfile(ROOT/'materials'/name,out/'downloads'/name)
+    else:
+        subprocess.run([os.environ.get('NODE_BIN','node'),str(ROOT/'scripts/export_pdf.cjs'),str(out)],check=True)
     from pypdf import PdfReader
     files={p.relative_to(out).as_posix():hashlib.sha256(canonical_bytes(p)).hexdigest() for p in sorted(out.rglob('*')) if p.is_file()}
     manifest={'release':release,'source_sha256':source_fingerprint(),'files':files,'pages':{name:len(PdfReader(out/'downloads'/name).pages) for name in ('assignment.pdf','guide.pdf')}}
-    if release:manifest['checks']={k:True for k in ('unity','variants','visual','audit')}
+    if release:manifest['checks']=release_checks(data)
     (out/'manifest.json').write_text(json.dumps(manifest,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
     print('Built',out,manifest['pages'])
 
 if __name__=='__main__':
     parser=argparse.ArgumentParser();parser.add_argument('--release',action='store_true');args=parser.parse_args()
     data=load_course();validate(data,args.release)
-    if args.release:require_release_evidence()
+    if args.release:require_release_evidence(data)
     build(data,ROOT/('site' if args.release else 'work/site'),args.release)
